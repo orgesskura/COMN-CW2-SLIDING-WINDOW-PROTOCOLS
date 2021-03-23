@@ -19,16 +19,17 @@ sock.bind((UDP_IP, UDP_PORT))
 image = bytearray()
 
 while True:
-    # set buffer size to 1027
-    data, addr = sock.recvfrom(1027) 
+    # set buffer size to 1027 and receive data
+    data, addr = sock.recvfrom(1027)
+    #add to image bytearray
     image.extend(data[3:]) 
-
+    #if it is last packet break
     if(data[2] == 1):
         break
-    
+
+#write image    
 with open(filename, 'wb') as f:
     f.write(image)
 
-print('Transfer of image is done')
-print(type(image))
+
 sock.close()

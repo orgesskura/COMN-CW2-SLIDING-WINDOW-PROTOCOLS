@@ -30,8 +30,9 @@ with open(fileToSend, 'rb') as f:
 
 # get number of full packets
 fullPkts = math.floor(len(image)/1024)
+#get final packet size in case image not div by 1024
 finalPkt = len(image) % 1024
-
+#set headers,retransimissions and start the timer
 byteEnd = 1024
 byteStart = 0
 seqNum = 0
@@ -50,11 +51,12 @@ for x in range(fullPkts):
     # Add payload
     pkt.extend(image[byteStart:byteEnd]) 
     # Send packet via specified port
-    sock.sendto(pkt, (UDP_IP, UDP_PORT)) 
+    sock.sendto(pkt, (UDP_IP, UDP_PORT))
+    #specify variables that are going to be used for ack
     ackRecievedCorrect = False
     ackReceived = False
     ack_seq_number = 0
-    
+    #while packet gets acknowledged
     while ackRecievedCorrect == False :
      try:
        #time out gets input in seconds while RetryTImeour is in milliseconds
@@ -63,18 +65,17 @@ for x in range(fullPkts):
        ack_seq_number = int.from_bytes(data[:2],'big')
        ackReceived = True
      except socket.timeout:
+         #if we get a timeout set ackReceived to False
          ackReceived = False
-
+     
+     #check that we received right ACK
      if seqNum == ack_seq_number  and ackReceived == True :
          ackRecievedCorrect = True
-
+     #retransmit the packet
      else :
          sock.sendto(pkt, (UDP_IP, UDP_PORT))
          retransmissions += 1
-
-
-        
-            
+      
     byteStart += 1024
     byteEnd += 1024
     
@@ -101,21 +102,25 @@ if(finalPkt != 0):
        ack_seq_number = int.from_bytes(data[:2],'big')
        ackReceived = True
      except socket.timeout:
+         #if we get a timeout set ackReceived to False
          ackReceived = False
-
+     
+     #check that we received right ACK
      if seqNum == ack_seq_number  and ackReceived == True :
          ackRecievedCorrect = True
-
+     #retransmit the packet
      else :
          sock.sendto(pkt, (UDP_IP, UDP_PORT))
          retransmissions += 1
 
+
 #get end time
 end = time.perf_counter()
+#get transmission time
 time_finish = end - start
+#get packet length in kb
 image_kb = len(image) / 1024
+#get rate
 rate = image_kb/time_finish
-print("{:d} {:0.4f}".format(retransmissions,rate))
-#get size in kb
-
+print("{:d} {:0.2f}".format(retransmissions,rate))
 sock.close()
