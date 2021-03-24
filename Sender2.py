@@ -101,6 +101,9 @@ if(finalPkt != 0):
        data,addr = ACK_socket.recvfrom(2)
        ack_seq_number = int.from_bytes(data[:2],'big')
        ackReceived = True
+       #if receiver has sent ack indicating it has received last packet
+       if ack_seq_number == 0 :
+           break
      except socket.timeout:
          #if we get a timeout set ackReceived to False
          ackReceived = False
