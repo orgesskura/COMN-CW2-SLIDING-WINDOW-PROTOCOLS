@@ -29,8 +29,8 @@ def sendPacket(seqNum, finalSeqNum, finalPacketSize):
 
 def receiveAck(base):
     ackSeqNum = base
-    ACK_socket.settimeout(RetryTimeout/1000)
-    data, addr = ACK_socket.recvfrom(2)
+    sock.settimeout(RetryTimeout/1000)
+    data, addr = sock.recvfrom(2)
     ackSeqNum = int.from_bytes(data[:2], 'big')
     if base < ackSeqNum:
         return ackSeqNum
@@ -52,14 +52,8 @@ RetryTimeout = int(sys.argv[4])
 windowSize = int(sys.argv[5])
 # set up socket
 sock = socket.socket(socket.AF_INET,  socket.SOCK_DGRAM)
-# set up ACK socket
-ACK_socket = socket.socket(socket.AF_INET,  socket.SOCK_DGRAM)
-# set ip for ack sending
-ACK_IP = "127.0.0.1"
-# set up port
-ACK_PORT = UDP_PORT + 1
-# bind to receive ACK
-ACK_socket.bind((ACK_IP, ACK_PORT))
+#set up non-blocking socket
+sock.setblocking(False)
 # Open the file to convert to a binary array
 with open(fileToSend, 'rb') as f:
     fr = f.read()
@@ -76,6 +70,8 @@ seqNum = 0
 EOF = 0
 retransmissions = 0
 base = -1
+#check of last ack loss
+lastACklost = 0
 finalSeqNum = math.ceil(float(len(image))/float(1024))
 finalPacketSize = len(image) - (finalSeqNum * 1024)
 start = time.perf_counter()
@@ -109,8 +105,7 @@ time_finish = end - start
 image_kb = len(image) / 1024
 # get rate
 rate = image_kb/time_finish
-print("{:d} {:0.2f}".format(retransmissions, rate))
+print("{:0.2f}".format(rate))
 sock.close()
-ACK_socket.close()
 
 

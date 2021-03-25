@@ -15,14 +15,6 @@ fileToSend = sys.argv[3]
 RetryTimeout = int(sys.argv[4])
 #set up socket
 sock = socket.socket(socket.AF_INET,  socket.SOCK_DGRAM)
-#set up ACK socket
-ACK_socket = socket.socket(socket.AF_INET,  socket.SOCK_DGRAM)
-#set ip for ack sending
-ACK_IP = "127.0.0.1"
-#set up port
-ACK_PORT = 1234
-#bind to receive ACK
-ACK_socket.bind((ACK_IP, ACK_PORT))
 # Open the file to convert to a binary array
 with open(fileToSend, 'rb') as f: 
     fr = f.read()
@@ -58,16 +50,16 @@ for x in range(fullPkts):
     ack_seq_number = 0
     #while packet gets acknowledged
     while ackRecievedCorrect == False :
+
      try:
        #time out gets input in seconds while RetryTImeour is in milliseconds
-       ACK_socket.settimeout(RetryTimeout/1000)
-       data,addr = ACK_socket.recvfrom(2)
+       sock.settimeout(RetryTimeout/1000)
+       data,addr = sock.recvfrom(2)
        ack_seq_number = int.from_bytes(data[:2],'big')
        ackReceived = True
      except socket.timeout:
          #if we get a timeout set ackReceived to False
          ackReceived = False
-     
      #check that we received right ACK
      if seqNum == ack_seq_number  and ackReceived == True :
          ackRecievedCorrect = True
@@ -97,8 +89,8 @@ if(finalPkt != 0):
     while ackRecievedCorrect == False :
      try:
        #time out gets input in seconds while RetryTImeour is in milliseconds
-       ACK_socket.settimeout(RetryTimeout/1000)
-       data,addr = ACK_socket.recvfrom(2)
+       sock.settimeout(RetryTimeout/1000)
+       data,addr = sock.recvfrom(2)
        ack_seq_number = int.from_bytes(data[:2],'big')
        ackReceived = True
        #if receiver has sent ack indicating it has received last packet
