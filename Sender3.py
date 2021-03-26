@@ -4,6 +4,9 @@ import sys
 import os
 import math
 import time
+from threading import Thread, Timer, Lock
+import queue
+import select
 
 
 
@@ -24,7 +27,12 @@ def sendPacket(seqNum, finalSeqNum, finalPacketSize):
     start = seqNum*1024
     end = start + size
     pkt.extend(image[start:end])
-    sock.sendto(pkt, (UDP_IP, UDP_PORT))
+    
+    try: 
+        sock.sendto(pkt, (UDP_IP, UDP_PORT))
+    except socket.error:
+        #keep sending all of the data
+        select.select([],[sock],[])
 
 
 def receiveAck(base):
@@ -69,13 +77,15 @@ byteStart = 0
 seqNum = 0
 EOF = 0
 retransmissions = 0
-base = -1
+base = 0
 #check of last ack loss
 lastACklost = 0
 finalSeqNum = math.ceil(float(len(image))/float(1024))
 finalPacketSize = len(image) - (finalSeqNum * 1024)
 start = time.perf_counter()
 fileSent = False
+timers_lock = Lock()
+
 try:
 	base = -1
 	seqNum = 0
