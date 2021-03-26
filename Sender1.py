@@ -3,7 +3,7 @@ import socket
 import sys 
 import os
 import math
-
+import time
 
 # get remote host as arg1
 UDP_IP = sys.argv[1]
@@ -39,7 +39,8 @@ for x in range(fullPkts):
     # Add payload
     pkt.extend(image[byteStart:byteEnd]) 
     # Send packet via specified port
-    sock.sendto(pkt, (UDP_IP, UDP_PORT)) 
+    sock.sendto(pkt, (UDP_IP, UDP_PORT))
+    time.sleep(0.01)
     
     byteStart += 1024
     byteEnd += 1024
