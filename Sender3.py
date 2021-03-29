@@ -4,13 +4,7 @@ import sys
 import os
 import math
 import time
-from threading import Thread, Timer, Lock
-import queue
 import select
-
-
-
-
 
 
 def sendPacket(seqNum, finalSeqNum, finalPacketSize):
@@ -84,7 +78,6 @@ finalSeqNum = math.ceil(float(len(image))/float(1024))
 finalPacketSize = len(image) - (finalSeqNum * 1024)
 start = time.perf_counter()
 fileSent = False
-timers_lock = Lock()
 
 try:
 	base = -1

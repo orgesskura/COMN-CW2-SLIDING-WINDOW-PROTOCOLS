@@ -1,6 +1,5 @@
 # Orges Skura 1813106
 import socket
-import socket
 import sys 
 import os
 import math
@@ -25,7 +24,6 @@ while True:
     data, addr = sock.recvfrom(1027) 
     #get sequence number of packet
     seqNum = int.from_bytes(data[:2],'big')
-    #check that it is not a duplicate packet
     if seqNum == nextSeqNum:
         #increase sequence number and add to bytearray image
         image.extend(data[3:])

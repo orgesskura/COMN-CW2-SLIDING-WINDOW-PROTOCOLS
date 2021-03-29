@@ -31,5 +31,5 @@ while True:
 with open(filename, 'wb') as f:
     f.write(image)
 
-
+#close socket
 sock.close()

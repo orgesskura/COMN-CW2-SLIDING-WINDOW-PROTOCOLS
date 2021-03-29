@@ -21,8 +21,9 @@ with open(fileToSend, 'rb') as f:
 
 # get number of full packets
 fullPkts = math.floor(len(image)/1024)
+#get size of the final packet: in case the last packet is not 1 kB
 finalPkt = len(image) % 1024
-
+#use this indices for packet allocation
 byteEnd = 1024
 byteStart = 0
 seqNum = 0
@@ -40,6 +41,7 @@ for x in range(fullPkts):
     pkt.extend(image[byteStart:byteEnd]) 
     # Send packet via specified port
     sock.sendto(pkt, (UDP_IP, UDP_PORT))
+    #add a sleep time for 10ms to account for delays of packets to sender
     time.sleep(0.01)
     
     byteStart += 1024
@@ -55,5 +57,5 @@ if(finalPkt != 0):
     pkt.extend(image[byteStart:(byteStart+finalPkt)]) 
     # Send packet to receiver
     sock.sendto(pkt, (UDP_IP, UDP_PORT))
-
+#close socket
 sock.close()
