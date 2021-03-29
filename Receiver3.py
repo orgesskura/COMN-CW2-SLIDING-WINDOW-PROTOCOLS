@@ -22,7 +22,7 @@ nextSeqNum = 0
 while True:
     # set buffer size to 1027 and get data from it
     data, addr = sock.recvfrom(1027) 
-    #get sequence number of packet
+    #if seqNum is nextSeqnum it means we received the next in order packet
     seqNum = int.from_bytes(data[:2],'big')
     if seqNum == nextSeqNum:
         #increase sequence number and add to bytearray image
@@ -35,14 +35,18 @@ while True:
     pkt = bytearray(var.to_bytes(2, byteorder='big'))
     #send acknowledgement
     sock.sendto(pkt, addr)
+    #be in the loop until we receive the packet in order
     while nextSeqNum != seqNum + 1:
        # set buffer size to 1027 and get data from it
        data, addr = sock.recvfrom(1027) 
        #get sequence number of packet
        seqNum = int.from_bytes(data[:2],'big')
+       #if seqNum is nextSeqnum it means we received the next in order packet
        if seqNum == nextSeqNum:
+           #extend to the file
            image.extend(data[3:])
            nextSeqNum += 1
+        #assign var as nextSeqnum -1 so that we can send ack to the sender for received packet
        if nextSeqNum == 0 :
             var = 0
        else :

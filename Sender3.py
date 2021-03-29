@@ -6,8 +6,9 @@ import math
 import time
 import select
 
-
+#method for sending a packet
 def sendPacket(seqNum, finalSeqNum, finalPacketSize):
+    #check if it is last packet and set variables accordinly
     if seqNum == finalSeqNum:
         EOF = 1
     else:
@@ -16,26 +17,30 @@ def sendPacket(seqNum, finalSeqNum, finalPacketSize):
         size = 1024
     else:
         size = finalPacketSize
+    #add headers and payload to the packet
     pkt = bytearray(seqNum.to_bytes(2, byteorder='big'))
     pkt.append(EOF)
     start = seqNum*1024
     end = start + size
     pkt.extend(image[start:end])
-    
+    #try sending the packet. I am using non-blocking sockets
     try: 
         sock.sendto(pkt, (UDP_IP, UDP_PORT))
     except socket.error:
         #keep sending all of the data
         select.select([],[sock],[])
 
-
+#method for receiveing acks
 def receiveAck(base):
     ackSeqNum = base
+    #get data from receiver and set a timeout for the socket
     sock.settimeout(RetryTimeout/1000)
     data, addr = sock.recvfrom(2)
     ackSeqNum = int.from_bytes(data[:2], 'big')
+    #if condition is true return ackseqnum
     if base < ackSeqNum:
         return ackSeqNum
+    #otherwise keep waiting for packets
     else:
         return receiveAck(base)
 
@@ -74,6 +79,7 @@ retransmissions = 0
 base = 0
 #check of last ack loss
 lastACklost = 0
+#initialize some useful variables
 finalSeqNum = math.ceil(float(len(image))/float(1024))
 finalPacketSize = len(image) - (finalSeqNum * 1024)
 start = time.perf_counter()
@@ -86,14 +92,17 @@ try:
 	finalPacketSize = len(image) - (finalSeqNum * 1024)
 	fileSent = False
 	while fileSent is False:
+        #send all packets within the window
 		while seqNum - base <= windowSize and seqNum <= finalSeqNum:
 			sendPacket(seqNum, finalSeqNum, finalPacketSize)
 			seqNum +=1
+        #try receiving acks and set a timeout
 		try:
 			base = receiveAck(base)
 		except socket.error as exc:
 			seqNum = base + 1
 			retransmissions+=1
+            #if base reached finalseqnum it means that it received ack for last packet
 			if base == finalSeqNum:
 			    fileSent = True
 except socket.error as exc:
